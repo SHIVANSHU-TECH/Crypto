@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Market Insights</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='Style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-chart-line"></i> Crypto Market Insights</h1>
+        </header>
+
+        <section class="dominance-section">
+            <h2>Market Dominance</h2>
+            <div class="dominance-container">
+                <div class="dominance-card bitcoin-card">
+                    <h3><i class="fab fa-bitcoin"></i> Bitcoin Dominance</h3>
+                    <p class="dominance-value bitcoin-value">{{ btc_dominance }}%</p>
+                </div>
+                <div class="dominance-card ethereum-card">
+                    <h3><i class="fab fa-ethereum"></i> Ethereum Dominance</h3>
+                    <p class="dominance-value ethereum-value">{{ eth_dominance }}%</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="filter-section">
+            <h2>Explore Cryptocurrencies</h2>
+            <div class="filter-container">
+                <select id="categoryFilter" onchange="filterCategory()">
+                    <option value="All">All Categories</option>
+                    <option value="DeFi">DeFi</option>
+                    <option value="Metaverse">Metaverse</option>
+                    <option value="Meme">Meme Coins</option>
+                    <option value="Gaming">Gaming</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="main-table-section">
+            <h2><i class="fas fa-trophy"></i> Top Cryptocurrencies by Market Cap</h2>
+            <div class="table-container">
+                <table class="crypto-table" id="mainTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Cryptocurrency</th>
+                            <th>Price</th>
+                            <th>Market Cap</th>
+                            <th>24h Volume</th>
+                            <th>Category</th>
+                            <th>Circulating Supply</th>
+                            <th>Total Supply</th>
+                            <th>24h Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for coin in top_coins %}
+                        <tr class="crypto-row" data-category="{{ coin.category | default('N/A') }}">
+                            <td class="serial-number">{{ loop.index }}</td>
+                            <td style="display: flex; align-items: center; gap: 10px;">
+                                <img src="{{ coin.image }}" alt="{{ coin.name }} logo" class="coin-logo"> 
+                                <a href="/coin/{{ coin.id }}" class="coin-link">{{ coin.name }} <span style="opacity: 0.7;">({{ coin.symbol.upper() | default('N/A') }})</span></a>
+                            </td>
+                            <td>${{ coin.current_price | round(2) | default('N/A') }}</td>
+                            <td>${{ coin.market_cap | round(2) | default('N/A') }}</td>
+                            <td>${{ coin.total_volume | round(2) | default('N/A') }}</td>
+                            <td>{{ coin.category | default('N/A') }}</td>
+                            <td>{{ coin.circulating_supply | round(2) | default('N/A') }}</td>
+                            <td>{{ coin.total_supply | round(2) | default('N/A') }}</td>
+                            <td class="{% if coin.price_change_percentage_24h >= 0 %}gain{% else %}loss{% endif %}">
+                                {{ coin.price_change_percentage_24h | round(2) | default('N/A') }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="top-performers-section">
+            <div class="top-tables">
+                <!-- TOP GAINERS -->
+            <div>
+                <h2><i class="fas fa-arrow-trend-up"></i> Top Gainers (24h)</h2>
+                <div class="table-container">
+                    <table class="crypto-table top-gainers-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Cryptocurrency</th>
+                                <th>24h Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for coin in gainers %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td style="text-align: center;">
+                                    <img src="{{ coin.image }}" alt="{{ coin.name }} logo" class="coin-logo"><br>
+                                    <strong>{{ coin.symbol.upper() }}</strong><br>
+                                    <span style="opacity: 0.7;">{{ coin.name }}</span>
+                                </td>
+                                <td class="gain">{{ coin.price_change_percentage_24h | round(2) | default('N/A') }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+<!-- TOP LOSERS -->
+            <div>
+                <h2><i class="fas fa-arrow-trend-down"></i> Top Losers (24h)</h2>
+                <div class="table-container">
+                    <table class="crypto-table top-losers-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Cryptocurrency</th>
+                                <th>24h Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for coin in losers %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td style="text-align: center;">
+                                    <img src="{{ coin.image }}" alt="{{ coin.name }} logo" class="coin-logo"><br>
+                                    <strong>{{ coin.symbol.upper() }}</strong><br>
+                                    <span style="opacity: 0.7;">{{ coin.name }}</span>
+                                </td>
+                                <td class="loss">{{ coin.price_change_percentage_24h | round(2) | default('N/A') }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Filter function for cryptocurrencies by category
+        function filterCategory() {
+            let selectedCategory = document.getElementById("categoryFilter").value;
+            let rows = document.querySelectorAll(".crypto-row");
+
+            let serialNumber = 1; // Reset serial number on filter
+            rows.forEach(row => {
+                let category = row.getAttribute("data-category") || "N/A";
+                if (selectedCategory === "All" || category === selectedCategory) {
+                    row.style.display = "table-row";
+                    row.querySelector(".serial-number").textContent = serialNumber++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        // Add animation when elements enter viewport
+        document.addEventListener("DOMContentLoaded", function() {
+            // Trigger animations on page load
+            const sections = document.querySelectorAll("section");
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = "1";
+                        entry.target.style.transform = "translateY(0)";
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>

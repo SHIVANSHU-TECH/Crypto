@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ coin.name }} Details | Crypto Market Insights</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='Style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="coin-header">
+                <img src="{{ coin.image.large }}" alt="{{ coin.name }} Logo">
+                <h1>{{ coin.name }} <span style="opacity: 0.7; font-size: 0.7em;">({{ coin.symbol.upper() }})</span></h1>
+            </div>
+            <a href="/" style="display: inline-block; margin-bottom: 30px; color: #a29bfe; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Back to Market Overview
+            </a>
+        </header>
+
+        <section>
+            <div class="coin-details-container">
+                <!-- Coin Information -->
+                <div class="detail-card">
+                    <h2><i class="fas fa-info-circle"></i> Coin Details</h2>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div>
+                            <h3 style="font-size: 2.2rem; margin: 0;">${{ "{:,.2f}".format(coin.market_data.current_price.usd) }}</h3>
+                            <span class="{% if coin.market_data.price_change_percentage_24h >= 0 %}gain{% else %}loss{% endif %}">
+                                {{ coin.market_data.price_change_percentage_24h | round(2) }}% (24h)
+                            </span>
+                        </div>
+                        
+                        <div style="text-align: right;">
+                            <p>Rank #{{ coin.market_cap_rank }}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <p style="opacity: 0.7;">Market Cap</p>
+                            <p style="font-weight: 600;">${{ "{:,.2f}".format(coin.market_data.market_cap.usd) }}</p>
+                        </div>
+                        
+                        <div>
+                            <p style="opacity: 0.7;">24h Trading Volume</p>
+                            <p style="font-weight: 600;">${{ "{:,.2f}".format(coin.market_data.total_volume.usd) }}</p>
+                        </div>
+                        
+                        <div>
+                            <p style="opacity: 0.7;">Category</p>
+                            <p style="font-weight: 600;">{{ coin.categories[0] if coin.categories else "N/A" }}</p>
+                        </div>
+                        
+                        <div>
+                            <p style="opacity: 0.7;">All-Time High</p>
+                            <p style="font-weight: 600;">${{ "{:,.2f}".format(coin.market_data.ath.usd) }}</p>
+                        </div>
+                        
+                        <div>
+                            <p style="opacity: 0.7;">Circulating Supply</p>
+                            <p style="font-weight: 600;">{{ "{:,.2f}".format(coin.market_data.circulating_supply) }}</p>
+                        </div>
+                        
+                        <div>
+                            <p style="opacity: 0.7;">Total Supply</p>
+                            <p style="font-weight: 600;">{{ "{:,.2f}".format(coin.market_data.total_supply) if coin.market_data.total_supply else "N/A" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- News Section -->
+                <div class="detail-card">
+                    <h2><i class="far fa-newspaper"></i> Latest News</h2>
+                    {% if news|length > 0 %}
+                        {% for article in news %}
+                            <div class="news-card">
+                                <a href="{{ article.url }}" target="_blank" class="news-title">{{ article.title }}</a>
+                                <p>{{ article.description[:150] }}{% if article.description|length > 150 %}...{% endif %}</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="news-source">{{ article.source.name }}</span>
+                                    <span class="news-date">{{ article.publishedAt[:10] }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="news-card">
+                            <p>No recent news available for {{ coin.name }}.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Additional market data section -->
+        <section>
+            <h2><i class="fas fa-chart-line"></i> Market Performance</h2>
+            <div class="detail-card">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+                    <div>
+                        <p style="opacity: 0.7;">Price Change (24h)</p>
+                        <p class="{% if coin.market_data.price_change_percentage_24h >= 0 %}gain{% else %}loss{% endif %}">
+                            {{ coin.market_data.price_change_percentage_24h | round(2) }}%
+                        </p>
+                    </div>
+                    <div>
+                        <p style="opacity: 0.7;">Price Change (7d)</p>
+                        <p class="{% if coin.market_data.price_change_percentage_7d >= 0 %}gain{% else %}loss{% endif %}">
+                            {{ coin.market_data.price_change_percentage_7d | round(2) }}%
+                        </p>
+                    </div>
+                    <div>
+                        <p style="opacity: 0.7;">Price Change (30d)</p>
+                        <p class="{% if coin.market_data.price_change_percentage_30d >= 0 %}gain{% else %}loss{% endif %}">
+                            {{ coin.market_data.price_change_percentage_30d | round(2) }}%
+                        </p>
+                    </div>
+                    <div>
+                        <p style="opacity: 0.7;">Price Change (1y)</p>
+                        <p class="{% if coin.market_data.price_change_percentage_1y >= 0 %}gain{% else %}loss{% endif %}">
+                            {{ coin.market_data.price_change_percentage_1y | round(2) if coin.market_data.price_change_percentage_1y else "N/A" }}%
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Add animation when elements enter viewport
+        document.addEventListener("DOMContentLoaded", function() {
+            // Trigger animations on page load
+            const sections = document.querySelectorAll("section");
+            const detailCards = document.querySelectorAll(".detail-card");
+            const newsCards = document.querySelectorAll(".news-card");
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = "1";
+                        entry.target.style.transform = "translateY(0)";
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Staggered animation for news cards
+            newsCards.forEach((card, index) => {
+                card.style.opacity = "0";
+                card.style.transform = "translateY(20px)";
+                setTimeout(() => {
+                    card.style.opacity = "1";
+                    card.style.transform = "translateY(0)";
+                }, 100 * (index + 1));
+            });
+        });
+    </script>
+</body>
+</html>
